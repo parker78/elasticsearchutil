@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+#coding:utf8
+# 导入包
+from elasticsearch import Elasticsearch
+# ConnectionError 链接出现问题
+# ConnectionTimeout 链接超时
+from elasticsearch.exceptions import ConnectionError
+from elasticsearch.exceptions import ConnectionTimeout
+#from datetime import datetime
+class MoniterElasticsearch(object):
+    """
+    封装Elasticsearch对象，用来获取集群状态。如果集群为red，或者出现异常需要告警。
+    """
+    def __init__(self,connectionParams):
+        """
+        es集群的链接信息，格式为 [{'host':'host1','port':'port1','timeout':'timeout1'},{'host':'host2','port':'port2','timeout':'timeout2'}]
+        """
+        self.connectionParams=connectionParams
+        self.elasticsearchClient=Elasticsearch(self.connectionParams)
+    def healthStatus(self):
+        """
+        判断是否有错误出现，集群是否可用
+        501 正常
+        502 集群内部数据存在正在同步的数据
+        503 集群内分片缺失,某些节点没有启动
+        504 默认状态，集群健康状况返回结果错误。
+        505 连接超时(集群内某些节点响应变慢）
+        506 不能连接集群
+        507 未知错误
+        """
+        isHealth=504
+        try:
+            color=self.elasticsearchClient.cluster.health()['status']
+            if color=='green':
+                isHealth=501
+            elif color=='yellow':
+                isHealth=502
+            elif color=='red':
+                isHealth=503
+            else:
+                isHealth=504
+        except ConnectionTimeout,ct:
+            print '连接超时'
+            print ct
+            isHealth=505
+        except ConnectionError,ce:
+            print '连接出现错误'
+            print ce
+            isHealth=506
+        except Exception,e:
+            print '未知错误'
+            print e
+            isHealth=507
+        return isHealth
+    def getHealthStatus():
+        None
+me=MoniterElasticsearch([{'host':'localhost','port':9202,'timeout':30},{'host':'localhost','port':9201,'timeout':30}])
+print me.healthStatus()
