@@ -1,0 +1,10 @@
+这个脚本就是发送给联通的那个脚本最新测试的那个.
+适配新索引时,和新的数据周期时,只需如下操作:
+types=['ftcommuanalysis','ftinteranalysis','ftmetricanalysis']
+将这个改为
+types=['inters','calls']
+设置时间间隔(月分) -15 表示运行时15个月的那个月.可以根据需求修改例如时间间隔设置为3个月.
+将
+close_day=datetime_offset_by_month(datetime1, -15).strftime("%Y%m")
+改为
+close_day=datetime_offset_by_month(datetime1, -3).strftime("%Y%m")
